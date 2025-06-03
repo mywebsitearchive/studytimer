@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <head>
+	<meta charset="utf-8">
+        <style>
+p{
+    margin: 0;
+}
+.box{
+    margin: auto;
+    width: 800px;
+    height: 500px;
+    border: 3px black solid;
+}
+.lilbox{
+    float: left;
+    margin-left: 10px;
+    margin-right: 10px;
+    width: 380px;
+    height: 250px;
+    background-color: aquamarine;
+}
+.lilbox p{
+    font-size: 60px;
+}
+input, button{
+    float: left;
+    width: 300px;
+    height: 100px;
+    font-size: 80px;
+    border: none;
+}
+#length{
+    width: 200px;
+}
+img{
+    float: left;
+    width: 150px;
+    height: 150px;
+    margin-top: 175px;
+    position: absolute;
+}
+#inputhour, #inputmin{
+    width: 100px;
+    text-align: right;
+}
+select{
+    height: 100px;
+    width: 100px;
+    font-size: 40px;
+    border: 5px black solid;
+    border-radius: 20px;
+    margin-left: 10px;
+}
+
+
+        </style>
+    </head>
+    <body>
+        <div id="debug" style="margin: auto;width: 1000px;font-size: 40px;">debug</div>
+<div class="box">
+            <div class="lilbox">
+                <p style="margin-top: 10px;">Length:</p>
+                <input id="length">
+                <p style="width: 100px;float: left;margin-left: 10px;">min</p>
+            </div>
+            <div class="lilbox">
+                <p style="margin-top: 10px;">End time:</p>
+                <input id="inputhour">
+                <p style="font-size: 80px;width: 20px;float: left;">:</p>
+                <input id="inputmin">
+                <select id="">
+                    <option></option>
+                    <option>AM</option>
+                    <option>PM</option>
+                </select>
+            </div>
+            <div class="lilbox">
+                <button onclick="start()">Start</button>
+            </div>
+</div>
+<div class="box">
+    <img src="house.jpg" style="margin-left: 25px;">
+    <img id="dog" src="dog.png" style="margin-left: 25px; z-index: 2;">
+    <img src="bone.jpg" style="margin-left: 625px;">
+</div>
+<div id="clock" class="box" style="font-size: 300px; text-align: center; line-height: 500px;">00:00</div>
+        <script>
+const dog = document.getElementById("dog")
+const debug = document.getElementById("debug")
+const clock = document.getElementById("clock")
+
+let margin = 25;
+let seconds = 60;
+let secondsRemaining;
+let ppds;
+let moveInterval;
+
+let start=()=>{
+    seconds = document.getElementById("length").value*60
+    secondsRemaining = seconds
+    ppds = 60/seconds
+    moveInterval = setInterval(() => {
+        if(margin < 625){
+            margin += ppds;
+        }
+        else{
+            clearInterval(moveInterval)
+            margin = 625
+        }
+        dog.style.marginLeft = Math.floor(margin) + "px";
+        debug.innerHTML = `margin: ${Math.floor(margin)} px, seconds: ${seconds}`
+        clock.innerHTML = `${Math.floor(secondsRemaining/60)}:${Math.floor(secondsRemaining%60)}`
+        secondsRemaining-=0.1
+    }, 100);
+}
+
+
+        </script>
+    </body>
+</html>
