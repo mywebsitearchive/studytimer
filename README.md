@@ -1,2 +1,2 @@
 # studytimer
-mywebsitearchive.github.io/studytimer
+https://mywebsitearchive.github.io/studytimer
