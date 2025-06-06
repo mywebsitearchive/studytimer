@@ -23,6 +23,10 @@ p{
 .lilbox p{
     font-size: 60px;
 }
+#buttonrow{
+    height: 100px;
+    width: 800px;
+}
 input, button{
     float: left;
     width: 300px;
@@ -58,21 +62,37 @@ select{
     </head>
     <body>
         <div id="debug" style="margin: auto;width: 1000px;font-size: 40px;">debug</div>
-<div class="box">
-            <div class="lilbox">
+        <div id="debug2" style="margin: auto;width: 1000px;font-size: 40px;">debug2</div>
+        <div id="debug3" style="margin: auto;width: 1000px;font-size: 40px;">debug3</div>
+        <div id="debug4" style="margin: auto;width: 1000px;font-size: 40px;">debug4</div>
+        <div id="debug5" style="margin: auto;width: 1000px;font-size: 40px;">debug5</div>
+<div class="box" id="board" style="display: none;">
+            <!-- <div class="lilbox">
                 <p style="margin-top: 10px;">Length:</p>
                 <input id="length">
                 <p style="width: 100px;float: left;margin-left: 10px;">min</p>
+            </div> -->
+            <div class="lilbox">
+                <p style="margin-top: 10px;">Length:</p>
+                <select id="selectlength" style="width: 200px;">
+                    <option value="5"></option>
+                    <option value="60">1 min</option>
+                    <option value="300">5 min</option>
+                    <option value="900">15 min</option>
+                    <option value="1800">30 min</option>
+                    <option value="3600">1 h</option>
+                    <option value="7200">2 h</option>
+                </select>
             </div>
             <div class="lilbox">
                 <p style="margin-top: 10px;">End time:</p>
-                <input id="inputhour">
+                <input id="inputhour" placeholder="0">
                 <p style="font-size: 80px;width: 20px;float: left;">:</p>
-                <input id="inputmin">
-                <select id="">
+                <input id="inputmin" placeholder="00">
+                <select id="ampmselect">
                     <option></option>
-                    <option>AM</option>
-                    <option>PM</option>
+                    <option value="am">AM</option>
+                    <option value="pm">PM</option>
                 </select>
             </div>
             <div class="lilbox">
@@ -80,42 +100,184 @@ select{
             </div>
 </div>
 <div class="box">
+    <div id="buttonrow">
+        <button onclick="reset()">Reset</button>
+
+    </div>
     <img src="house.jpg" style="margin-left: 25px;">
     <img id="dog" src="dog.png" style="margin-left: 25px; z-index: 2;">
     <img src="bone.jpg" style="margin-left: 625px;">
 </div>
-<div id="clock" class="box" style="font-size: 300px; text-align: center; line-height: 500px;">00:00</div>
+<div id="clock" class="box" style="font-size: 200px; text-align: center; line-height: 500px;"></div>
         <script>
-const dog = document.getElementById("dog")
 const debug = document.getElementById("debug")
 const clock = document.getElementById("clock")
+const selectLength = document.getElementById("selectlength")
+const lengthInput = document.getElementById("length")
+const board = document.getElementById("board")
+const inputhour = document.getElementById("inputhour")
+const inputmin = document.getElementById("inputmin")
+const ampmselect = document.getElementById("ampmselect")
 
 let margin = 25;
-let seconds = 60;
+let seconds = 5;
 let secondsRemaining;
 let ppds;
 let moveInterval;
+let startTime;
+let endTime;
+let hourValue;
+let minuteValue;
+let endTotalMins;
+let nowTotalMins;
+let ampm;
 
-let start=()=>{
-    seconds = document.getElementById("length").value*60
+let intervalIsRunning = false;
+let now = new Date();
+let now2;
+
+let loadPage=()=>{
+    startTime = localStorage.getItem("starttime")
+    endTime = localStorage.getItem("endtime")
+    if(startTime == null){
+        openBoard()
+    }
+    else{
+        seconds = (endTime-startTime)/1000
+        margin = 25+(now.getTime()-startTime)/(endTime-startTime)*600
+        ppds = 60000/(endTime-startTime)
+        secondsRemaining = (endTime-now.getTime())/1000
+        setInterval(move, 100)
+    }
+}
+let openBoard =()=>{
+    board.style.display = "block"
+}
+let reset=()=>{
+
+    now = new Date();
+
+    localStorage.clear()
+    clearInterval(moveInterval)
+    intervalIsRunning = false
+    clock.innerHTML = `0:00`
+    dog.style.marginLeft = "25px"
+    openBoard()
+
+    now = new Date();
+    startTime = now.getTime()
+    endTime = now.getTime()+1000*seconds
     secondsRemaining = seconds
     ppds = 60/seconds
-    moveInterval = setInterval(() => {
-        if(margin < 625){
-            margin += ppds;
+}
+let start=()=>{
+    if(intervalIsRunning){
+        debug.innerHTML = "interval is running already"
+    }
+    else{
+        if(lengthInput){
+            seconds = lengthInput.value
+            debug2.innerHTML += "using length input"
+        }
+        else if(selectLength.selectedIndex != 0){
+            debug2.innerHTML += "using select"
+            seconds= selectLength.options[selectLength.selectedIndex].value
         }
         else{
-            clearInterval(moveInterval)
-            margin = 625
+            debug5.innerHTML += "using set endtime"
+            setEndTime()
         }
-        dog.style.marginLeft = Math.floor(margin) + "px";
-        debug.innerHTML = `margin: ${Math.floor(margin)} px, seconds: ${seconds}`
-        clock.innerHTML = `${Math.floor(secondsRemaining/60)}:${Math.floor(secondsRemaining%60)}`
-        secondsRemaining-=0.1
-    }, 100);
+        margin = 25
+        now = new Date();
+        startTime = now.getTime()
+        endTime = now.getTime()+1000*seconds
+        secondsRemaining = seconds
+        ppds = 60/seconds
+
+        intervalIsRunning = true
+            moveInterval = setInterval(move, 100);
+        
+        
+        board.style.display = "none"
+        localStorage.setItem("starttime", startTime) 
+        localStorage.setItem("endtime", endTime) 
+
+        document.getElementById("debug2").innerHTML = `start ${startTime}, end ${endTime}, diff ${endTime-startTime}`
+    }
+
 }
+let move=()=>{
+            now2 = new Date().getTime()
+            if(margin < 625){
+                margin = 25 + 600*(now2-startTime)/(endTime-startTime)
+            }
+            else{
+                    margin = 625;
+                    localStorage.clear()
+                    clearInterval(moveInterval)
+                    intervalIsRunning = false
+                    clock.innerHTML = `0:00`
+                    openBoard()
+            }
+            dog.style.marginLeft = Math.floor(margin) + "px";
+            secondsRemaining = (endTime-now2)/1000
+            debug3.innerHTML = `margin: ${Math.floor(margin)} px, seconds: ${seconds}`
+            if(secondsRemaining >= 3600){//over 1h
+                    clock.innerHTML = `${String((Math.floor(secondsRemaining/3600)))}:${String((Math.floor(secondsRemaining%3600/60))).padStart(2, "0")}:${String((Math.floor(secondsRemaining%60))).padStart(2,"0")}`
+            }
+            else if(secondsRemaining > 0){//less than 1h
 
+                clock.innerHTML = `${String((Math.floor(secondsRemaining/60)))}:${String((Math.floor(secondsRemaining%60))).padStart(2,"0")}`
+            }
+            else{
 
+                clock.innerHTML = `0:00`
+            }
+}
+let setEndTime=()=>{
+
+    hourValue = Number(inputhour.value)
+    minuteValue = Number(inputmin.value)
+    endTotalMins = Number(inputhour.value)*60+Number(inputmin.value)
+    nowTotalMins = now.getHours()*60+now.getMinutes()
+
+    ampm = ampmselect.options[ampmselect.selectedIndex].value
+    
+    if(ampm == "pm"){
+        switch(hourValue){
+            case 12:
+                break;
+                default:
+                    hourValue+=12
+                    endTotalMins+=720
+                }
+            }
+    else if(hourValue == 12 && ampm == "am"){
+        hourValue = 0
+        endTotalMins-=720
+    }
+   
+    if((inputhour.value != "" || Number(inputhour.value) < 24 )&& 0 <= Number(inputmin.value) && Number(inputmin.value) < 60 && Number.isInteger(hourValue) && Number.isInteger(minuteValue)){
+
+        debug.innerHTML = `<br>${endTotalMins}, now = ${nowTotalMins}`
+        debug4.innerHTML += Number(inputmin.value)
+        if(endTotalMins<=nowTotalMins){
+            hourValue+=24
+            endTotalMins+=1440
+        }
+        seconds=(endTotalMins-nowTotalMins)*60
+        ppds = 60/seconds
+        secondsRemaining = seconds
+        debug4.innerHTML += `this work<br>cause ${inputhour.value != "" } or ${ Number(inputhour.value) < 24 }${ 0 <= Number(inputmin.value) }${ Number(inputmin.value) < 60 }${ Number.isInteger(hourValue) }${ Number.isInteger(minuteValue)}<br>Number(inutminvalue) = ${Number(inputmin.value)}`
+    }
+    else{
+        debug4.innerHTML += `this aint work<br>cause ${inputhour.value != "" } or ${ Number(inputhour.value) < 24 }${ 0 <= Number(inputmin.value) }${ Number(inputmin.value) < 60 }${ Number.isInteger(hourValue) }${ Number.isInteger(minuteValue)}<br>Number(inutminvalue) = ${Number(inputmin.value)}`
+
+    }
+            
+        }
+
+loadPage()
         </script>
     </body>
 </html>
